@@ -1,8 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import { STATUS_CODES } from '../constants/statusCodes';
 import { registerSchema,loginSchema } from '../zod/user.schema';
-import  jwt from "jsonwebtoken"
-
+import  jwt from "jsonwebtoken";
 import User from '../models/User';
 
 export const registerUser = asyncHandler(async (req, res) => {
@@ -53,3 +52,47 @@ export const loginUser = asyncHandler(async (req, res) => {
     },
   });
 });
+export const getProfile = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user.id).select('-password'); // Exclude password
+
+  if (!user) {
+    res.status(STATUS_CODES.NOT_FOUND);
+    throw new Error('User not found');
+  }
+
+  res.status(STATUS_CODES.OK).json({
+    id: user._id,
+    username: user.username,
+    email: user.email,
+    position: user.position,
+  });
+});
+export const updateProfile = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (!user) {
+    res.status(STATUS_CODES.NOT_FOUND);
+    throw new Error('User not found');
+  }
+
+  const { username, email, position, password } = req.body;
+
+  if (username) user.username = username;
+  if (email) user.email = email;
+  if (position) user.position = position;
+  if (password) user.password = password; 
+
+  const updatedUser = await user.save();
+
+  res.status(STATUS_CODES.OK).json({
+    message: 'Profile updated successfully',
+    user: {
+      id: updatedUser._id,
+      username: updatedUser.username,
+      email: updatedUser.email,
+      position: updatedUser.position,
+    },
+  });
+});
+
+
