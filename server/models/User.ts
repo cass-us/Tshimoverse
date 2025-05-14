@@ -6,6 +6,7 @@ export enum Position {
   Developer = 'Developer',
   Manager = 'Manager',
   TeamLead = 'Team Lead',
+ 
 }
 
 export interface IUser extends Document {

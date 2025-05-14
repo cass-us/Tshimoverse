@@ -10,6 +10,14 @@ export const registerSchema = z.object({
     .regex(/[\W_]/, 'Password must contain at least one special character'),
   position: z.enum(['BI', 'Developer', 'Manager', 'Team Lead']),
 });
+export const loginSchema = z.object({
+  email: z
+    .string({ required_error: 'Email is required' })
+    .email({ message: 'Invalid email format' }),
+  password: z
+    .string({ required_error: 'Password is required' })
+    .min(6, { message: 'Password must be at least 6 characters long' }),
+});
 
 
 export type RegisterInput = z.infer<typeof registerSchema>;

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { STATUS_CODES } from '../constants/statusCodes';
 
 export const notFound = (req: Request, res: Response, next: NextFunction) => {
+  console.log(req);
   const error = new Error(`Not Found - ${req.originalUrl}`);
   res.status(STATUS_CODES.NOT_FOUND);
   next(error);
