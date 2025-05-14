@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 
 export enum Position {
   BI = 'BI',
-  Developer = 'Developer',
+  Admin = 'Admin',
   Manager = 'Manager',
   TeamLead = 'Team Lead',
  
