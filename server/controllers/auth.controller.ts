@@ -3,6 +3,7 @@ import { STATUS_CODES } from '../constants/statusCodes';
 import { registerSchema,loginSchema } from '../zod/user.schema';
 import  jwt from "jsonwebtoken";
 import User from '../models/User';
+import { IUser } from '../models/User';
 
 export const registerUser = asyncHandler(async (req, res) => {
   const validatedData = registerSchema.parse(req.body);
@@ -53,7 +54,7 @@ export const loginUser = asyncHandler(async (req, res) => {
   });
 });
 export const getProfile = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user.id).select('-password'); // Exclude password
+  const user:IUser = await User.findById(req.user._id).select('-password'); // Exclude password
 
   if (!user) {
     res.status(STATUS_CODES.NOT_FOUND);
