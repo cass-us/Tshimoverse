@@ -8,7 +8,15 @@ export const registerSchema = z.object({
     .min(6, 'Password must be at least 6 characters')
     .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
     .regex(/[\W_]/, 'Password must contain at least one special character'),
-  position: z.enum(['BI', 'Developer', 'Manager', 'Team Lead']),
+  position: z.enum(['Admin', 'Developer', 'Manager', 'Team Lead']),
+});
+export const loginSchema = z.object({
+  email: z
+    .string({ required_error: 'Email is required' })
+    .email({ message: 'Invalid email format' }),
+  password: z
+    .string({ required_error: 'Password is required' })
+    .min(6, { message: 'Password must be at least 6 characters long' }),
 });
 
 
