@@ -9,7 +9,7 @@ import {
 import { registerSchema } from "../schemas/registerSchema";
 import generateToken from "../utils/generateToken";
 import { clearAuthCookies } from "../utils/authCookies";
-import  { IUserDocument } from "../types"; // Assuming this is correct
+import  { IUserDocument } from "../types"; 
 
 interface AuthenticatedRequest extends Request {
   user?: IUserDocument;
