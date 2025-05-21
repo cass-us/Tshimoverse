@@ -1,99 +1,121 @@
-import asyncHandler from 'express-async-handler';
-import { STATUS_CODES } from '../constants/statusCodes';
-import { registerSchema,loginSchema } from '../zod/user.schema';
-import  jwt from "jsonwebtoken";
-import User from '../models/User';
-import { IUser } from '../models/User';
+import { Request, Response } from "express";
+import asyncHandler from "express-async-handler";
+import { STATUS_CODES } from "../constants/http.codes";
+import {
+  registerUser,
+  loginUser,
+ 
+} from "../services/authService";
+import { registerSchema } from "../schemas/registerSchema";
+import generateToken from "../utils/generateToken";
+import { clearAuthCookies } from "../utils/authCookies";
+import  { IUserDocument } from "../types"; // Assuming this is correct
 
-export const registerUser = asyncHandler(async (req, res) => {
+interface AuthenticatedRequest extends Request {
+  user?: IUserDocument;
+}
+
+export const registerUserController = asyncHandler(async (req: Request, res: Response) => {
+  // Validate and parse request body using Zod
   const validatedData = registerSchema.parse(req.body);
 
-  const userExists = await User.findOne({ email: validatedData.email });
-  if (userExists) {
-    res.status(STATUS_CODES.BAD_REQUEST);
-    throw new Error('User already exists');
-  }
+  // Pass only validated data to the service
+  const user = await registerUser(validatedData);
+   console.log(user);
+  // Generate tokens
+  const { accessToken, refreshToken } = generateToken(user, res);
 
-  const user = await User.create(validatedData);
-
+  // successful response
   res.status(STATUS_CODES.CREATED).json({
-    message: 'User registered successfully',
+    message: "User registered successfully",
+    accessToken,
+    refreshToken,
     user: {
-      id: user._id,
+      id: user._id.toString(),
       username: user.username,
       email: user.email,
       position: user.position,
+      ...(user.position === "Beneficiary" && {
+        gender: user.gender,
+        programme: user.programme,
+        cohortStartDate: user.cohortStartDate,
+        cohortEndDate: user.cohortEndDate,
+      }),
     },
   });
 });
-export const loginUser = asyncHandler(async (req, res) => {
-  const { email, password } = loginSchema.parse(req.body);
 
-  const user = await User.findOne({ email });
-
-  if (!user || !(await user.comparePassword(password))) {
-    res.status(STATUS_CODES.UNAUTHORIZED);
-    throw new Error('Invalid email or password');
-  }
-
-  const token = jwt.sign(
-    { id: user._id },
-    process.env.JWT_SECRET!,
-    { expiresIn: '7d' }
-  );
+export const loginUserController = asyncHandler(async (req: Request, res: Response) => {
+  const user = await loginUser(req.body);
+  const { accessToken, refreshToken } = generateToken(user, res);
 
   res.status(STATUS_CODES.OK).json({
-    message: 'Login successful',
-    token,
+    message: "Login successful",
+    accessToken,
+    refreshToken,
     user: {
-      id: user._id,
+      id: user._id.toString(),
       username: user.username,
       email: user.email,
       position: user.position,
-    },
-  });
-});
-export const getProfile = asyncHandler(async (req, res) => {
-  const user:IUser = await User.findById(req.user._id).select('-password'); // Exclude password
-
-  if (!user) {
-    res.status(STATUS_CODES.NOT_FOUND);
-    throw new Error('User not found');
-  }
-
-  res.status(STATUS_CODES.OK).json({
-    id: user._id,
-    username: user.username,
-    email: user.email,
-    position: user.position,
-  });
-});
-export const updateProfile = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id);
-
-  if (!user) {
-    res.status(STATUS_CODES.NOT_FOUND);
-    throw new Error('User not found');
-  }
-
-  const { username, email, position, password } = req.body;
-
-  if (username) user.username = username;
-  if (email) user.email = email;
-  if (position) user.position = position;
-  if (password) user.password = password; 
-
-  const updatedUser = await user.save();
-
-  res.status(STATUS_CODES.OK).json({
-    message: 'Profile updated successfully',
-    user: {
-      id: updatedUser._id,
-      username: updatedUser.username,
-      email: updatedUser.email,
-      position: updatedUser.position,
+      ...(user.position === "Beneficiary" && {
+        gender: user.gender,
+        programme: user.programme,
+        cohortStartDate: user.cohortStartDate,
+        cohortEndDate: user.cohortEndDate,
+      }),
     },
   });
 });
 
+/**
+ * @desc Get current user profile
+ * @route GET /api/auth/profile
+ */
+// export const getProfileController = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+//   if (!req.user) throw new Error("User not authenticated");
 
+//   const user = await getUserProfile(req.user._id);
+
+//   res.status(STATUS_CODES.OK).json({
+//     id: user._id.toString(),
+//     username: user.username,
+//     email: user.email,
+//     position: user.position,
+//     ...(user.position === "Beneficiary" && {
+//       gender: user.gender,
+//       programme: user.programme,
+//       cohortStartDate: user.cohortStartDate,
+//       cohortEndDate: user.cohortEndDate,
+//     }),
+//   });
+// });
+
+// /**
+//  * @desc Update user profile
+//  * @route PUT /api/auth/profile
+//  */
+// export const updateProfileController = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+//   if (!req.user) throw new Error("User not authenticated");
+
+//   const updatedUser = await updateUserProfile(req.user._id, req.body);
+
+//   res.status(STATUS_CODES.OK).json({
+//     message: "Profile updated successfully",
+//     user: {
+//       id: updatedUser._id.toString(),
+//       username: updatedUser.username,
+//       email: updatedUser.email,
+//       position: updatedUser.position,
+//     },
+//   });
+// });
+
+// /**
+//  * @desc Logout user
+//  * @route POST /api/auth/logout
+//  */
+// export const logoutUserController = asyncHandler(async (_req: Request, res: Response) => {
+//   clearAuthCookies(res);
+//   res.status(STATUS_CODES.OK).json({ message: "Logout successful" });
+// });

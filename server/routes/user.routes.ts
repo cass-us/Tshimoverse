@@ -1,12 +1,12 @@
 import express from 'express';
-import { registerUser, loginUser ,getProfile,updateProfile} from '../controllers/auth.controller';
-import { protect } from '../middleware/errorMiddleware';
+import { registerUserController, loginUserController } from '../controllers/auth.controller';
+//import { protect } from '../middleware/errorMiddleware';
 
 const router = express.Router();
 
-router.post('/register', registerUser);
-router.post('/login',loginUser);
-router.get('/profile', protect, getProfile);
-router.put('/profile', protect, updateProfile);
+router.post('/register', registerUserController);
+router.post('/login',loginUserController);
+//router.get('/profile', protect, getProfile);
+//router.put('/profile', protect, updateProfile);
 
 export default router;

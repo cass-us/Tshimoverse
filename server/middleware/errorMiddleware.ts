@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { STATUS_CODES } from '../constants/statusCodes';
+import { STATUS_CODES } from '../constants/http.codes';
 import asyncHandler from 'express-async-handler';
 import User from '../models/User';
 import jwt from 'jsonwebtoken';
