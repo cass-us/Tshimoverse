@@ -1,5 +1,4 @@
-// src/models/User.ts or similar
-
+// src/models/User.ts
 import mongoose, { Document, Schema, Types } from 'mongoose';
 import bcrypt from 'bcrypt';
 
@@ -30,7 +29,7 @@ export interface IUserDocument extends IUser, Document {
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
-// 4. Define schema using IUser
+// 4. Define schema
 const UserSchema = new Schema<IUserDocument>({
   username: {
     type: String,
@@ -95,4 +94,6 @@ UserSchema.methods.comparePassword = async function (candidatePassword: string):
 
 // 7. Create and export model
 const User = mongoose.model<IUserDocument>('User', UserSchema);
+
+
 export default User;

@@ -1,43 +1,27 @@
-// import asyncHandler from 'express-async-handler';
-// import User, { Position } from '../models/User';
-// import { CREATED } from '../constants/h';
+import { Request, Response } from 'express';
+import asyncHandler from 'express-async-handler';
+import { createMultipleUsers } from '../services/adminService';
+import HttpError from '../utils/httpError';
 
+// POST /api/admin/users
+export const uploadUsersController = asyncHandler(async (req: Request, res: Response) => {
+    
+    console.log(req.body);
+    
+    const users = req.body;
 
-// export const adminController = asyncHandler(async (req, res) => {
-//   const users = req.body;
+  if (!Array.isArray(users) || users.length === 0) {
+    throw new HttpError('No users provided', 400);
+  }
 
-//   if (!Array.isArray(users) || users.length === 0) {
-//     res.status(STATUS_CODES.BAD_REQUEST);
-//     throw new Error('No users provided');
-//   }
+  try {
+    const savedUsers = await createMultipleUsers(users);
 
-//   const validPositions = Object.values(Position);
-
-//   const mappedUsers = users.map((user) => {
-//     if (!user.fullName || !user.email) {
-//       throw new Error('Each user must have a fullName and email');
-//     }
-
-//     const username = user.fullName.toLowerCase().replace(/\s+/g, '');
-//     const defaultPassword = 'DefaultPass123!';
-
-//     const position =
-//       validPositions.includes(user.role) && user.role
-//         ? user.role
-//         : 'Developer'; 
-
-//     return {
-//       username,
-//       email: user.email.toLowerCase(),
-//       password: defaultPassword,
-//       position,
-//     };
-//   });
-
-//   const savedUsers = await User.insertMany(mappedUsers);
-
-//   res.status(STATUS_CODES.CREATED).json({
-//     message: 'Users uploaded successfully',
-//     users: savedUsers,
-//   });
-// });
+    res.status(201).json({
+      message: 'Users uploaded successfully',
+      users: savedUsers,
+    });
+  } catch (error: any) {
+    throw new HttpError(error.message || 'Error uploading users', error.statusCode || 500);
+  }
+});
