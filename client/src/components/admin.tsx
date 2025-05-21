@@ -8,6 +8,13 @@ type User = {
   [key: string]: any;
 };
 
+// Helper to convert Excel serial date to ISO string
+const excelSerialToDate = (serial: number): string => {
+  const excelEpoch = new Date(1899, 11, 30); // Excel date system starts from Dec 30, 1899
+  const jsDate = new Date(excelEpoch.getTime() + serial * 86400000);
+  return jsDate.toISOString().split('T')[0]; // return 'YYYY-MM-DD'
+};
+
 const admin: React.FC = () => {
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -23,10 +30,25 @@ const admin: React.FC = () => {
       const workbook = XLSX.read(data, { type: 'array' });
       const sheetName = workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
-      const users: User[] = XLSX.utils.sheet_to_json(sheet);
+      const rawUsers: User[] = XLSX.utils.sheet_to_json(sheet);
+
+      const users = rawUsers.map((user) => {
+        const processedUser = { ...user };
+
+        // Fix date fields if they are numbers
+        if (typeof user.cohortStartDate === 'number') {
+          processedUser.cohortStartDate = excelSerialToDate(user.cohortStartDate);
+        }
+        if (typeof user.cohortEndDate === 'number') {
+          processedUser.cohortEndDate = excelSerialToDate(user.cohortEndDate);
+        }
+
+        return processedUser;
+      });
 
       try {
         await axios.post('http://localhost:8000/api/admin/bulk-users', users);
+        console.log(users);
         alert('Users uploaded successfully!');
       } catch (error) {
         console.error(error);
@@ -38,8 +60,8 @@ const admin: React.FC = () => {
   };
 
   return (
-    <div>
-      <h2>Upload User Excel File</h2>
+    <div className='bg-blue-300 p-10'>
+      <h2 >Upload User Excel File</h2>
       <input type="file" accept=".xlsx, .xls, .csv" onChange={handleFileUpload} />
     </div>
   );

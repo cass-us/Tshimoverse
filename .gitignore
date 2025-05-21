@@ -15,13 +15,12 @@ dist-ssr
 
 # .gitignore
 # Ignore all .env files globally (recommended)
-*.env
+.env
 
 # OR, if you only want to ignore .env files in server/
-server/.env
 
 node_modules/
-*node_modules/
+
 dist/
 
 # Editor directories and files

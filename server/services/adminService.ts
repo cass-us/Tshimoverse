@@ -69,7 +69,14 @@ export const createMultipleUsers = async (users: BulkUserInput[]) => {
     return userPayload;
   });
 
-  const savedUsers = await User.insertMany(mappedUsers);
+  // Use `save()` to trigger password hashing middleware
+  const savedUsers = await Promise.all(
+    mappedUsers.map(async (userData) => {
+      const user = new User(userData);
+      return await user.save(); // triggers password hashing
+    })
+  );
+
   return savedUsers;
 };
 

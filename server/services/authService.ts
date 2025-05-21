@@ -72,7 +72,7 @@ export const loginUser = async (credentials: LoginCredentials) => {
   const { email, password } = credentials;
 
   const user = await User.findOne({ email });
-
+    console.log(user);
   if (!user || !(await user.comparePassword(password))) {
     throw new HttpError("Incorrect email or password", 401);
   }
@@ -107,3 +107,5 @@ export const updateProfile = async (userId: string, data: UpdateUserData) => {
   await user.save();
   return user;
 };
+
+export {}
