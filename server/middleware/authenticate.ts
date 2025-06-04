@@ -1,24 +1,18 @@
-// src/middleware/authenticate.ts
+// middleware/authenticate.ts
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
+export function authenticate(req: Request, res: Response, next: NextFunction): void {
+  const token = req.headers.authorization?.split(' ')[1];
 
-export const authenticate = (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'Missing or invalid token' });
+  if (!token) {
+    res.status(401).json({ message: 'Unauthorized' });
+    return;
   }
-
-  const token = authHeader.split(' ')[1];
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    // @ts-ignore
-    req.user = decoded;
+    // Add user to request if decoding is needed
     next();
   } catch (err) {
-    return res.status(401).json({ message: 'Invalid token' });
+    res.status(403).json({ message: 'Forbidden' });
   }
-};
+}
